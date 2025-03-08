@@ -145,7 +145,7 @@ int main()
                     cin.get();
                 }
 
-                else if (pilihan > 5)
+                else if (pilihan > 5 || pilihan < 1)
                 {
                     cout << "Hanya bisa memilih (1-5)" << endl;
 
