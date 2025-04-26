@@ -34,12 +34,67 @@ struct ServisMotor
 ServisMotor servis[20];
 Bengkel isi_bengkel[MAX_MOTOR];
 
+void bubbleSort(Bengkel *bengkel, const int &jumlah)
+{
+    for (int i = 0; i < jumlah; i++)
+    {
+        for (int j = 0; j < (jumlah - i - 1); j++)
+        {
+            if (bengkel[j].detailAntrean.nama_motor > bengkel[j + 1].detailAntrean.nama_motor)
+            {
+                // Menukar elemen jika elemen sebelumnya lebih besar
+                string temp = bengkel[j].detailAntrean.nama_motor;
+                bengkel[j].detailAntrean.nama_motor = bengkel[j + 1].detailAntrean.nama_motor;
+                bengkel[j + 1].detailAntrean.nama_motor = temp;
+            }
+        }
+    }
+}
+
+void selectionSort(ServisMotor *estimasi, const int &jumlah)
+{
+    for (int i = 0; i < jumlah - 1; i++)
+    {
+        int min = i;
+
+        for (int j = i + 1; j < jumlah; j++)
+        {
+            if (estimasi[j].estimasi_selesai > estimasi[min].estimasi_selesai)
+            {
+                min = j;
+            }
+        }
+
+        int temp = estimasi[i].estimasi_selesai;
+        estimasi[i].estimasi_selesai = estimasi[min].estimasi_selesai;
+        estimasi[min].estimasi_selesai = temp;
+    }
+}
+
+// Insertion Sort
+void insertionSort(Bengkel *bengkel, const int &jumlah)
+{
+    for (int i = 1; i < jumlah; i++)
+    {
+        string key = bengkel[i].detailAntrean.plat_nomor;
+        int j = i - 1;
+
+        while (j >= 0 && bengkel[j].detailAntrean.plat_nomor > key)
+        {
+            bengkel[j + 1].detailAntrean.plat_nomor = bengkel[j].detailAntrean.plat_nomor;
+            j--;
+        }
+
+        bengkel[j + 1].detailAntrean.plat_nomor = key;
+    }
+}
+
 void lihatLakukanServis();
 void tambahAntrean();
 void editAntrean(Bengkel *bengkel, int panjang);
-void hapusAntrean(Bengkel *bengkel, int &panjang);
+void hapusAntrean(Bengkel *bengkel, int *panjang);
 
-void tabelAntrean(int lengkap1, int *status)
+void tabelAntrean(int lengkap1, int &status)
 {
     // Header tabel
     cout << "+----+------------------+------------------+------------------+-------------+---------------+" << endl;
@@ -66,7 +121,7 @@ void tabelAntrean(int lengkap1, int *status)
 
         if (i == 0)
         {
-            cout << "| " << setw(14) << servis[*status].status_servis;
+            cout << "| " << setw(14) << servis[status].status_servis;
         }
         else if (i > 0 && servis[i].estimasi_selesai != 0)
         {
@@ -198,7 +253,7 @@ void login(int chance = 3)
             }
             else if (pilihan == 4)
             {
-                hapusAntrean(isi_bengkel, panjang_antrean);
+                hapusAntrean(isi_bengkel, &panjang_antrean);
             }
             else if (pilihan > 5 || pilihan < 1)
             {
@@ -272,12 +327,49 @@ void lihatLakukanServis()
     else
     {
         int status = 0;
-        tabelAntrean(1, &status);
+        tabelAntrean(1, status);
 
         string mulai;
+        string urut;
+        int pilUrut;
 
         do
         {
+            cout << "Lakukan pengurutan (y/t)? : " << endl;
+            cin >> urut;
+            if (urut == "y")
+            {
+                cout << "Menu pengurutan" << endl;
+                cout << "1. Berdasarkan nama motor" << endl;
+                cout << "2. Berdasarkan estimasi selesai" << endl;
+                cout << "3. Berdasarkan plat nomor" << endl;
+                do
+                {
+                    cout << "Pilihan : ";
+                    cin >> pilUrut;
+                    if (pilUrut == 1)
+                    {
+                        bubbleSort(isi_bengkel, panjang_antrean);
+                        break;
+                    }
+                    else if (pilUrut == 2)
+                    {
+                        selectionSort(servis, panjang_antrean);
+                        break;
+                    }
+                    else if (pilUrut == 3)
+                    {
+                        insertionSort(isi_bengkel, panjang_antrean);
+                        break;
+                    }
+                    else
+                    {
+                        cout << "Hanya bisa memilih 1-3" << endl;
+                    }
+                } while (pilUrut > 3);
+
+                tabelAntrean(1, status);
+            }
             cout << "Lakukan Servis (y/t)? : ";
             cin >> mulai;
 
@@ -288,7 +380,7 @@ void lihatLakukanServis()
                 cout << "Proses servis motor " << isi_bengkel[0].detailAntrean.nama_motor << " sedang dilakukan" << endl;
 
                 status = 1;
-                tabelAntrean(1, &status);
+                tabelAntrean(1, status);
 
                 sleep(10);
 
@@ -296,7 +388,7 @@ void lihatLakukanServis()
                 cout << "Motor telah selesai diservis" << endl;
 
                 status = 2;
-                tabelAntrean(1, &status);
+                tabelAntrean(1, status);
 
                 cout << "Sedang update antrean" << endl;
 
@@ -319,7 +411,7 @@ void lihatLakukanServis()
                 panjang_antrean--;
 
                 status = 0;
-                tabelAntrean(1, &status);
+                tabelAntrean(1, status);
 
                 if (panjang_antrean == 0)
                 {
@@ -405,11 +497,11 @@ void editAntrean(Bengkel *bengkel, int panjang)
     cin.get();
 }
 
-void hapusAntrean(Bengkel *bengkel, int &panjang)
+void hapusAntrean(Bengkel *bengkel, int *panjang)
 {
     system("clear || cls");
 
-    if (panjang == 0)
+    if (*panjang == 0)
     {
         cout << "Belum ada antrean motor untuk dihapus." << endl;
     }
@@ -421,15 +513,15 @@ void hapusAntrean(Bengkel *bengkel, int &panjang)
         int index = 0;
 
         cin >> index;
-        if (index > 0 && index <= panjang)
+        if (index > 0 && index <= *panjang)
         {
-            for (int i = index - 1; i < panjang - 1; i++)
+            for (int i = index - 1; i < *panjang - 1; i++)
             {
                 bengkel[i].detailAntrean.nama_motor = bengkel[i + 1].detailAntrean.nama_motor; // Ngegeser elemen ke kiri kek nimpa jadinya
                 bengkel[i].detailAntrean.plat_nomor = bengkel[i + 1].detailAntrean.plat_nomor;
                 bengkel[i].detailAntrean.nomor_hp = bengkel[i + 1].detailAntrean.nomor_hp;
             }
-            panjang--;
+            (*panjang)--;
             cout << "Antrean berhasil dihapus" << endl;
         }
         else
